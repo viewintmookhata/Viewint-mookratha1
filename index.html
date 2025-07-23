@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+  <meta charset="UTF-8">
+  <title>Untitled</title>
+  
+
+</head>
+<body>
+<!-- partial:index.partial.html -->
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>วิวอินท์ หมูกระทะ</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .bg-glass {
+      background-color: rgba(255, 255, 255, 0.25);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+    }
+  </style>
+</head>
+<body class="bg-gray-100 text-gray-800 min-h-screen flex flex-col">
+
+  <!-- ส่วนหัว -->
+  <div class="relative w-full h-[300px]">
+    <img src="https://github.com/viewintmookhata/Viewint-mookratha/blob/main/IMG_0389.jpeg?raw=true" 
+         class="absolute w-full h-full object-cover opacity-60" alt="ภาพหน้าร้าน" />
+    <div class="absolute inset-0 flex flex-col items-center justify-center text-center px-4">
+      <img src="https://github.com/viewintmookhata/Viewint-mookratha/blob/main/logo-round.png?raw=true" 
+           alt="โลโก้ร้าน" 
+           class="w-24 h-24 mb-3 rounded-full shadow-lg bg-white/70 p-2 border" />
+      <h1 class="text-4xl font-bold text-black drop-shadow-sm bg-white/80 px-6 py-2 rounded-xl">
+        วิวอินท์ หมูกระทะ
+      </h1>
+    </div>
+  </div>
+
+  <!-- เนื้อหา -->
+  <main class="max-w-3xl mx-auto px-4 py-6 flex-grow">
+    <h2 class="text-2xl font-semibold mb-4">เมนูหมูกระทะ</h2>
+    <div id="menu" class="grid gap-4 sm:grid-cols-2 mb-8"></div>
+
+    <h2 class="text-2xl font-semibold mb-4 mt-6">ข้อมูลผู้สั่ง</h2>
+    <form id="order-form" class="space-y-4 bg-white p-4 rounded-lg shadow">
+      <input type="text" id="customer-name" placeholder="ชื่อผู้สั่ง *" required
+             class="w-full p-2 border rounded" />
+      <input type="tel" id="customer-phone" placeholder="เบอร์โทร *" required
+             class="w-full p-2 border rounded" />
+      <textarea id="customer-address" placeholder="ที่อยู่ที่พัก / ที่อยู่จัดส่ง *" required
+                class="w-full p-2 border rounded resize-none" rows="3"></textarea>
+
+      <button type="submit" class="w-full bg-green-600 hover:bg-green-700 text-white py-2 rounded font-semibold">
+        ส่งออเดอร์
+      </button>
+    </form>
+  </main>
+
+  <!-- ปุ่มไอคอนตะกร้าลอย -->
+  <button id="cart-toggle" 
+          class="fixed bottom-4 right-4 z-50 bg-white/90 p-3 rounded-full shadow-lg hover:scale-110 transition-transform" 
+          aria-label="เปิดตะกร้าสินค้า">
+    🛒 <span id="cart-count" class="ml-1 text-red-600 font-bold">0</span>
+  </button>
+
+  <!-- ตะกร้าป๊อปอัป -->
+  <div id="cart-popup" 
+       class="hidden fixed bottom-16 right-4 w-80 max-h-[70vh] bg-white border border-gray-300 rounded-xl shadow-xl p-4 overflow-y-auto z-50"
+       role="dialog" aria-modal="true" aria-labelledby="cart-title">
+    <div class="flex justify-between items-center mb-3">
+      <h2 id="cart-title" class="text-lg font-semibold">รายการในตะกร้า</h2>
+      <button id="cart-close" class="text-gray-600 hover:text-black font-bold text-xl" aria-label="ปิดตะกร้า">&times;</button>
+    </div>
+    <ul id="cart-items" class="space-y-2 text-sm"></ul>
+    <p id="cart-total" class="mt-4 font-semibold text-right"></p>
+  </div>
+
+  <script>
+    const menu = [
+      { name: "หมูกระทะชุดเล็ก", price: 299 },
+      { name: "หมูกระทะชุดกลาง", price: 459 },
+      { name: "หมูกระทะชุดใหญ่", price: 699 },
+      { name: "ชุดหมูกระทะทะเลรวม", price: 499 },
+      { name: "หมูหมักนุ่ม 200g", price: 59 },
+      { name: "หมูสามชั้นสไลซ์ 200g", price: 69 },
+      { name: "ปลาหมึกสด 100g", price: 39 },
+      { name: "กุ้งแกะเปลือก 100g", price: 49 },
+      { name: "ผักรวมชุดเล็ก", price: 25 },
+      { name: "น้ำจิ้มสูตรเด็ด 1 ขวด", price: 20 },
+      { name: "น้ำแข็ง 1 ถุง", price: 10 }
+    ];
+
+    const menuContainer = document.getElementById("menu");
+    const cartToggle = document.getElementById("cart-toggle");
+    const cartPopup = document.getElementById("cart-popup");
+    const cartClose = document.getElementById("cart-close");
+    const cartItems = document.getElementById("cart-items");
+    const cartCount = document.getElementById("cart-count");
+    const cartTotal = document.getElementById("cart-total");
+
+    const orderForm = document.getElementById("order-form");
+    const inputName = document.getElementById("customer-name");
+    const inputPhone = document.getElementById("customer-phone");
+    const inputAddress = document.getElementById("customer-address");
+
+    let cart = [];
+
+    // แสดงเมนูอาหาร
+    function renderMenu() {
+      menu.forEach(item => {
+        const card = document.createElement("div");
+        card.className = "bg-white rounded-xl p-4 shadow flex flex-col justify-between";
+
+        card.innerHTML = `
+          <div>
+            <h3 class="font-semibold text-lg mb-1">${item.name}</h3>
+            <p class="text-red-600 font-bold mb-3">${item.price} บาท</p>
+          </div>
+          <button class="bg-red-500 text-white py-2 rounded hover:bg-red-600 transition" 
+                  onclick="addToCart('${item.name}', ${item.price})">
+            เพิ่มลงตะกร้า
+          </button>
+        `;
+        menuContainer.appendChild(card);
+      });
+    }
+
+    // เพิ่มสินค้าในตะกร้า
+    function addToCart(name, price) {
+      const idx = cart.findIndex(i => i.name === name);
+      if (idx > -1) {
+        cart[idx].qty++;
+      } else {
+        cart.push({ name, price, qty: 1 });
+      }
+      updateCartDisplay();
+    }
+
+    // แสดงรายการในตะกร้า
+    function updateCartDisplay() {
+      cartCount.textContent = cart.reduce((sum, i) => sum + i.qty, 0);
+      cartItems.innerHTML = "";
+
+      if (cart.length === 0) {
+        cartItems.innerHTML = `<li class="text-center text-gray-500">ยังไม่มีรายการในตะกร้า</li>`;
+        cartTotal.textContent = "";
+        return;
+      }
+
+      let total = 0;
+      cart.forEach((item, i) => {
+        total += item.price * item.qty;
+        const li = document.createElement("li");
+        li.className = "flex justify-between items-center border-b pb-1";
+        li.innerHTML = `
+          <span>${item.name} x${item.qty}</span>
+          <button onclick="removeFromCart(${i})" class="text-red-600 hover:text-red-800 font-bold">ลบ</button>
+        `;
+        cartItems.appendChild(li);
+      });
+
+      cartTotal.textContent = `รวมทั้งหมด: ${total} บาท`;
+    }
+
+    // ลบรายการจากตะกร้า
+    function removeFromCart(index) {
+      cart.splice(index, 1);
+      updateCartDisplay();
+    }
+
+    // เปิด/ปิดตะกร้า
+    cartToggle.addEventListener("click", () => {
+      cartPopup.classList.toggle("hidden");
+    });
+
+    cartClose.addEventListener("click", () => {
+      cartPopup.classList.add("hidden");
+    });
+
+    // ส่งออเดอร์ผ่าน Gmail
+    orderForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+
+      if (cart.length === 0) {
+        alert("กรุณาเลือกเมนูอาหารก่อนส่งออเดอร์");
+        return;
+      }
+      if (!inputName.value.trim() || !inputPhone.value.trim() || !inputAddress.value.trim()) {
+        alert("กรุณากรอกข้อมูลชื่อ เบอร์โทร และที่อยู่ให้ครบถ้วน");
+        return;
+      }
+
+      let message = `ชื่อผู้สั่ง: ${inputName.value}\n`;
+      message += `เบอร์โทร: ${inputPhone.value}\n`;
+      message += `ที่อยู่ที่พัก / ที่อยู่จัดส่ง: ${inputAddress.value}\n\n`;
+      message += "รายการสั่งซื้อ:\n";
+      cart.forEach(item => {
+        message += `${item.name} x${item.qty} = ${item.price * item.qty} บาท\n`;
+      });
+      const total = cart.reduce((sum, i) => sum + i.price * i.qty, 0);
+      message += `\nรวมทั้งหมด: ${total} บาท`;
+
+      const mailtoLink = `mailto:viewintmookratha@gmail.com?subject=สั่งอาหารหมูกระทะ&body=${encodeURIComponent(message)}`;
+      window.location.href = mailtoLink;
+    });
+
+    // เรียกแสดงเมนูตอนโหลดหน้า
+    renderMenu();
+    updateCartDisplay();
+
+    // ฟังก์ชัน removeFromCart ให้ใช้ใน HTML
+    window.removeFromCart = removeFromCart;
+    window.addToCart = addToCart;
+  </script>
+
+</body>
+</html>
+<!-- partial -->
+  
+</body>
+</html>
