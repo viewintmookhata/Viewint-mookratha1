@@ -1,14 +1,4 @@
 <!DOCTYPE html>
-<html lang="en" >
-<head>
-  <meta charset="UTF-8">
-  <title>Untitled</title>
-  
-
-</head>
-<body>
-<!-- partial:index.partial.html -->
-<!DOCTYPE html>
 <html lang="th">
 <head>
   <meta charset="UTF-8" />
@@ -36,7 +26,7 @@
 
   <!-- ปุ่มเปิดตะกร้า (มือถือ) -->
   <button id="open-cart-btn" class="fixed bottom-4 left-4 bg-white/80 backdrop-blur p-3 rounded-full shadow-lg z-50 sm:hidden">
-    🛒
+    🛒 (0)
   </button>
 
   <!-- ส่วนหัว -->
@@ -94,7 +84,7 @@
     <div class="bg-white p-6 rounded-xl w-[90%] max-w-md text-center shadow-xl">
       <h2 class="text-xl font-bold mb-4">📷 โปรดแสกน QR เพื่อชำระเงิน</h2>
       <img src="https://promptpay.io/1234567890.png" alt="QR Code" class="w-48 h-48 mx-auto mb-4" />
-      <p class="text-sm text-gray-600">หากลูกค้าเลือกชำระด้วย QR Code ลูกค้าสามารถแนบสลิปการชำระเงินไปพร้อมกับคำสั่งซื้อใน Gmail ได้เลย หรือหากไม่สะดวก แนบภายหลังก็สามารถเก็บไว้เพื่อให้ทางร้านตรวจสอบได้เช่นกันครับ/ค่ะ</p>
+      <p class="text-sm text-gray-600">ลูกค้าสามารถแนบสลิปการชำระเงินไปพร้อมกับคำสั่งซื้อใน Gmail ได้ หรือหากไม่สะดวกแนบภายหลังก็สามารถเก็บไว้ให้ทางร้านตรวจสอบได้เช่นกันครับ/ค่ะ</p>
       <button onclick="closeQR()" class="mt-4 bg-gray-200 px-4 py-2 rounded hover:bg-gray-300">ปิด</button>
     </div>
   </div>
@@ -156,6 +146,7 @@
       cartEl.innerHTML = "";
       let total = 0;
       let orderList = [];
+
       cart.forEach((qty, i) => {
         if (qty > 0) {
           const item = menu[i];
@@ -169,8 +160,16 @@
         }
         document.getElementById(`qty-${i}`).textContent = cart[i];
       });
+
       totalEl.textContent = total;
       orderInput.value = orderList.join(", ");
+
+      // ✅ แสดงจำนวนรวมในปุ่ม 🛒
+      const totalItems = cart.reduce((a, b) => a + b, 0);
+      const cartBtn = document.getElementById("open-cart-btn");
+      if (cartBtn) {
+        cartBtn.innerText = `🛒 (${totalItems})`;
+      }
     }
 
     document.getElementById("order-form").addEventListener("submit", function(e) {
@@ -181,13 +180,17 @@
       const name = data.get("name");
       const subject = `ออเดอร์ใหม่จาก ${name}`;
       const body = `ชื่อ: ${name}\nเบอร์: ${data.get("phone")}\nที่อยู่: ${data.get("address")}\nรายการ: ${data.get("order")}\nคำขอพิเศษ: ${notes}\nชำระเงิน: ${payment}`;
-      
+
+      const mailto = `mailto:viewintmookratha@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+
       if (payment === "QR Code") {
         qrPopup.classList.remove("hidden");
+        setTimeout(() => {
+          window.location.href = mailto;
+        }, 500);
         return;
       }
 
-      const mailto = `mailto:viewintmookratha@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
       window.location.href = mailto;
     });
 
@@ -202,9 +205,5 @@
 
     renderMenu();
   </script>
-</body>
-</html>
-<!-- partial -->
-  
 </body>
 </html>
