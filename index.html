@@ -1,1 +1,230 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+  <meta charset="UTF-8">
+  <title>Untitled</title>
+  
 
+</head>
+<body>
+<!-- partial:index.partial.html -->
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>วิวอินท์ หมูกระทะ</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="icon" href="https://github.com/viewintmookhata/Viewint-mookratha/blob/main/logo-round.png?raw=true" type="image/png" />
+  <meta name="description" content="ร้านวิวอินท์ หมูกระทะ สั่งออนไลน์ ส่งถึงบ้าน">
+  <meta property="og:title" content="วิวอินท์ หมูกระทะ">
+  <meta property="og:image" content="https://github.com/viewintmookhata/Viewint-mookratha/blob/main/IMG_0389.jpeg?raw=true">
+  <meta property="og:description" content="หมูกระทะเดลิเวอรี สด อร่อย ส่งถึงบ้าน">
+  <style>
+    .bg-glass {
+      background-color: rgba(255, 255, 255, 0.25);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+    }
+    .modal-bg {
+      background-color: rgba(0, 0, 0, 0.6);
+    }
+  </style>
+</head>
+<body class="bg-gray-100 text-gray-800">
+
+  <!-- ปุ่มเปิดตะกร้า (มือถือ) -->
+  <button id="open-cart-btn" class="fixed bottom-4 left-4 bg-white/80 backdrop-blur p-3 rounded-full shadow-lg z-50 sm:hidden">
+    🛒 <span id="cart-count" class="text-red-500 font-bold">0</span>
+  </button>
+
+  <!-- ส่วนหัว -->
+  <div class="relative w-full h-[300px]">
+    <img src="https://github.com/viewintmookhata/Viewint-mookratha/blob/main/IMG_0389.jpeg?raw=true"
+         class="absolute w-full h-full object-cover opacity-60" alt="ภาพหน้าร้าน" />
+    <div class="absolute inset-0 flex flex-col items-center justify-center text-center px-4">
+      <img src="https://github.com/viewintmookhata/Viewint-mookratha/blob/main/logo-round.png?raw=true"
+           alt="โลโก้ร้าน"
+           class="w-24 h-24 mb-3 rounded-full shadow-lg bg-white/70 p-2 border" />
+      <h1 class="text-4xl font-bold text-black drop-shadow-sm bg-white/80 px-6 py-2 rounded-xl">
+        วิวอินท์ หมูกระทะ
+      </h1>
+    </div>
+  </div>
+
+  <!-- เนื้อหา -->
+  <div class="max-w-3xl mx-auto px-4 py-6">
+    <h2 class="text-2xl font-semibold mb-4">เมนูหมูกระทะ</h2>
+    <div id="menu" class="grid gap-4 sm:grid-cols-2"></div>
+
+    <h2 class="text-xl font-semibold mt-8 mb-2">ข้อมูลผู้สั่ง</h2>
+    <form id="order-form" class="space-y-3">
+      <input required name="name" placeholder="ชื่อผู้สั่ง" class="w-full p-2 rounded border" />
+      <input required name="phone" placeholder="เบอร์โทร" class="w-full p-2 rounded border" />
+      <textarea required name="address" placeholder="ที่อยู่จัดส่ง" class="w-full p-2 rounded border"></textarea>
+      <textarea name="notes" placeholder="คำขอพิเศษ (เช่น ไม่เอาไข่ไก่)" class="w-full p-2 rounded border"></textarea>
+      <div class="space-y-2">
+        <p class="text-sm font-medium">เลือกช่องทางชำระเงิน</p>
+        <label class="inline-flex items-center">
+          <input type="radio" name="payment" value="เงินสด" class="mr-2" checked /> เงินสด
+        </label>
+        <label class="inline-flex items-center ml-4">
+          <input type="radio" name="payment" value="QR Code" class="mr-2" /> QR Code
+        </label>
+      </div>
+      <input type="hidden" name="order" id="order-data" />
+      <p class="text-xs text-red-500">* หากเว็บผิดพลาดหรือชำระเงินไม่ได้ โปรดเปิดเว็บด้วย Google Chrome</p>
+      <button class="bg-red-500 hover:bg-red-600 text-white w-full py-2 rounded-xl mt-2">
+        ส่งออเดอร์
+      </button>
+    </form>
+    <p class="text-sm text-center text-gray-400 mt-6">© 2025 วิวอินท์ หมูกระทะ</p>
+  </div>
+
+  <!-- ตะกร้าสินค้า -->
+  <div id="floating-cart" class="fixed bottom-4 right-4 w-72 bg-glass shadow-xl rounded-xl border border-white/40 p-4 z-50 hidden sm:block">
+    <h3 class="text-lg font-bold mb-2 text-black">🛒 ตะกร้าสินค้า</h3>
+    <ul id="cart" class="space-y-2 max-h-40 overflow-auto text-sm text-black mb-2"></ul>
+    <p class="font-semibold text-black">รวม: <span id="total">0</span> บาท</p>
+  </div>
+
+  <!-- ป๊อปอัป QR -->
+  <div id="qr-popup" class="fixed inset-0 flex items-center justify-center modal-bg hidden z-50">
+    <div class="bg-white p-6 rounded-xl w-[90%] max-w-md text-center shadow-xl">
+      <h2 class="text-xl font-bold mb-4">📷 โปรดแสกน QR เพื่อชำระเงิน</h2>
+      <img src="https://promptpay.io/1234567890.png" alt="QR Code" class="w-48 h-48 mx-auto mb-4" />
+      <p class="text-sm text-gray-600">ลูกค้าสามารถแนบสลิปการชำระเงินไปพร้อมกับคำสั่งซื้อใน Gmail ได้ หรือหากไม่สะดวกแนบภายหลังก็สามารถเก็บไว้ให้ทางร้านตรวจสอบได้เช่นกันครับ/ค่ะ</p>
+      <button id="confirm-payment" class="mt-4 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+        ✅ ชำระแล้ว
+      </button>
+      <button onclick="closeQR()" class="mt-2 bg-gray-200 px-4 py-2 rounded hover:bg-gray-300">ปิด</button>
+    </div>
+  </div>
+
+  <!-- สคริปต์ -->
+  <script>
+    const menu = [
+      { name: "หมูกระทะชุดเล็ก", price: 299, img: "https://source.unsplash.com/featured/?thai-bbq" },
+      { name: "หมูกระทะชุดกลาง", price: 459, img: "https://source.unsplash.com/featured/?grilled-meat" },
+      { name: "หมูกระทะชุดใหญ่", price: 699, img: "https://source.unsplash.com/featured/?hotpot" },
+      { name: "ชุดหมูกระทะทะเลรวม", price: 499, img: "https://source.unsplash.com/featured/?seafood-bbq" },
+      { name: "หมูหมักนุ่ม 200g", price: 59, img: "https://source.unsplash.com/featured/?pork" },
+      { name: "หมูสามชั้นสไลซ์ 200g", price: 69, img: "https://source.unsplash.com/featured/?sliced-pork" },
+      { name: "ปลาหมึกสด 100g", price: 39, img: "https://source.unsplash.com/featured/?squid" },
+      { name: "กุ้งแกะเปลือก 100g", price: 49, img: "https://source.unsplash.com/featured/?shrimp" },
+      { name: "ผักรวมชุดเล็ก", price: 25, img: "https://source.unsplash.com/featured/?vegetables" },
+      { name: "น้ำจิ้มสูตรเด็ด 1 ขวด", price: 20, img: "https://source.unsplash.com/featured/?sauce" },
+      { name: "น้ำแข็ง 1 ถุง", price: 10, img: "https://source.unsplash.com/featured/?ice" }
+    ];
+
+    let cart = Array(menu.length).fill(0);
+    const menuEl = document.getElementById("menu");
+    const cartEl = document.getElementById("cart");
+    const totalEl = document.getElementById("total");
+    const orderInput = document.getElementById("order-data");
+    const qrPopup = document.getElementById("qr-popup");
+
+    function renderMenu() {
+      menu.forEach((item, i) => {
+        const div = document.createElement("div");
+        div.className = "flex gap-3 items-center bg-white p-3 rounded-xl shadow";
+        div.innerHTML = `
+          <img src="${item.img}" alt="${item.name}" class="w-16 h-16 object-cover rounded" />
+          <div class="flex-1">
+            <p class="font-semibold">${item.name}</p>
+            <p class="text-sm text-gray-500">${item.price} บาท</p>
+          </div>
+          <div class="flex items-center gap-1">
+            <button class="bg-red-500 text-white px-3 py-1 rounded" onclick="decrease(${i})">-</button>
+            <span id="qty-${i}" class="px-2">${cart[i]}</span>
+            <button class="bg-green-500 text-white px-3 py-1 rounded" onclick="increase(${i})">+</button>
+          </div>
+        `;
+        menuEl.appendChild(div);
+      });
+    }
+
+    function increase(i) {
+      cart[i]++;
+      renderCart();
+    }
+
+    function decrease(i) {
+      if (cart[i] > 0) cart[i]--;
+      renderCart();
+    }
+
+    function renderCart() {
+      cartEl.innerHTML = "";
+      let total = 0;
+      let orderList = [];
+
+      cart.forEach((qty, i) => {
+        if (qty > 0) {
+          const item = menu[i];
+          const sum = item.price * qty;
+          total += sum;
+          orderList.push(`${item.name} x${qty} (${sum}฿)`);
+          const li = document.createElement("li");
+          li.className = "flex justify-between items-center";
+          li.innerHTML = `<span>${item.name} x${qty}</span><span>${sum}฿</span>`;
+          cartEl.appendChild(li);
+        }
+        document.getElementById(`qty-${i}`).textContent = cart[i];
+      });
+
+      totalEl.textContent = total;
+      orderInput.value = orderList.join(", ");
+
+      // อัปเดตเลขตะกร้าเป็นสีแดง
+      const totalItems = cart.reduce((a, b) => a + b, 0);
+      const countEl = document.getElementById("cart-count");
+      if (countEl) {
+        countEl.textContent = totalItems;
+      }
+    }
+
+    document.getElementById("order-form").addEventListener("submit", function(e) {
+      e.preventDefault();
+      const data = new FormData(e.target);
+      const notes = data.get("notes") || "-";
+      const payment = data.get("payment");
+      const name = data.get("name");
+      const subject = `ออเดอร์ใหม่จาก ${name}`;
+      const body = `ชื่อ: ${name}\nเบอร์: ${data.get("phone")}\nที่อยู่: ${data.get("address")}\nรายการ: ${data.get("order")}\nคำขอพิเศษ: ${notes}\nชำระเงิน: ${payment}`;
+      const mailto = `mailto:viewintmookratha@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+
+      if (payment === "QR Code") {
+        // แสดงป๊อปอัป QR
+        qrPopup.classList.remove("hidden");
+
+        // กดปุ่มชำระแล้วค่อยส่งเมล
+        document.getElementById("confirm-payment").onclick = () => {
+          qrPopup.classList.add("hidden");
+          window.location.href = mailto;
+        };
+        return;
+      }
+
+      // ถ้าเลือกเงินสด ส่งเมลทันที
+      window.location.href = mailto;
+    });
+
+    function closeQR() {
+      qrPopup.classList.add("hidden");
+    }
+
+    document.getElementById("open-cart-btn").addEventListener("click", () => {
+      const cartBox = document.getElementById("floating-cart");
+      cartBox.classList.toggle("hidden");
+    });
+
+    renderMenu();
+  </script>
+</body>
+</html>
+<!-- partial -->
+  
+</body>
+</html>
